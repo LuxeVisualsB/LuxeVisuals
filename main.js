@@ -1,11 +1,25 @@
-(()=>{const L=[['index.html','Home'],['how-it-works.html','How it works'],['contact.html','Contact']],
-cur=location.pathname.split('/').pop()||'index.html',$=s=>document.querySelector(s);
-$('#hd').innerHTML=`<div class="w"><a class="logo" href="index.html">LuxeVisuals</a><nav>${L.map(([h,t])=>`<a href="${h}"${h==cur?' class="on"':''}>${t}</a>`).join('')}<a class="btn" href="contact.html">Get started</a></nav></div>`;
-$('#ft').innerHTML=`<div class="w"><span>© ${new Date().getFullYear()} LuxeVisuals. South Africa.</span><a href="terms.html">Terms of Service</a></div>`;
-const ld=$('#ld'),t0=performance.now(),hide=()=>setTimeout(()=>ld.classList.add('off'),Math.max(0,450-(performance.now()-t0)));
-document.readyState=='complete'?hide():addEventListener('load',hide);
-addEventListener('pageshow',e=>e.persisted&&ld.classList.add('off'));
-document.addEventListener('click',e=>{const a=e.target.closest('a[href]');if(!a||a.target||e.metaKey||e.ctrlKey)return;const u=new URL(a.href);
-if(u.origin!=location.origin||u.pathname==location.pathname)return;e.preventDefault();ld.classList.remove('off');setTimeout(()=>location.href=a.href,380)});
-const io=new IntersectionObserver(es=>es.forEach(x=>x.isIntersecting&&(x.target.classList.add('in'),io.unobserve(x.target))),{threshold:.12});
-document.querySelectorAll('.rv').forEach(el=>io.observe(el))})();
+import { initNavigation, initReveals, initCopyButtons } from './js/site.js';
+
+// Enhance complete, static pages. Page-specific features load only where needed.
+document.documentElement.classList.add('js');
+initNavigation();
+initReveals();
+initCopyButtons();
+document.querySelectorAll('[data-year]').forEach(el => { el.textContent = new Date().getFullYear(); });
+
+const page = document.body.dataset.page;
+if (page === 'home') {
+  import('./js/examples.js').then(module => module.initExamples()).catch(() => {});
+  import('./js/planner.js').then(module => module.initPlanner()).catch(() => {
+    const error = document.querySelector('#planner-fallback');
+    if (error) error.textContent = 'The interactive planner could not load. You can discuss the numbers with us directly.';
+  });
+}
+if (page === 'contact') {
+  import('./js/contact.js').then(module => module.initContact()).catch(() => {
+    const form = document.querySelector('#brief-form');
+    if (form) form.hidden = true;
+    const status = document.querySelector('#brief-fallback');
+    if (status) status.textContent = 'Use the direct WhatsApp or email links below to get in touch.';
+  });
+}
